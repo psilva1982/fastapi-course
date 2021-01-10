@@ -1,5 +1,6 @@
 import asyncio 
-from utils.db import execute
+from utils.pure_db import execute, fetch
+from utils.orm_db import authors
 
 query = "insert into books values(:isbn, :name, :author, :year)";
 values = [
@@ -8,4 +9,23 @@ values = [
 ]
 
 loop = asyncio.get_event_loop()
-loop.run_until_complete(execute(query, True, values))
+# loop.run_until_complete(execute(query, True, values))
+
+query = "select * from books where isbn=:isbn"
+values = {"isbn" : "isbn1"}
+
+query = "select * from books"
+#loop.run_until_complete(fetch(query, True, values))
+# loop.run_until_complete(fetch(query, False))
+
+
+async def test_orm():
+    # query = authors.insert().values(id=1,name="author1",books=["book1", "book2"])
+    # await execute(query, False)
+
+    query = authors.select().where(authors.c.id==1)
+    query = await fetch(query, True)
+    print(query)
+
+
+loop.run_until_complete(test_orm())

@@ -11,3 +11,4 @@ DOC_BOOK_ISBN='It is uniq book id, show is in Schema view'
 DB_HOST='localhost'
 DB_USER='postgres'
 DB_PASS='postgres'
+DB_URL=f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/bookstore"

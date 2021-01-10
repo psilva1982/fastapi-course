@@ -1,8 +1,8 @@
-from utils.constants import DB_HOST, DB_PASS, DB_USER
+from utils.constants import DB_URL
 from databases import Database
 
 async def connect_db():
-    db = Database(f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/bookstore")
+    db = Database(DB_URL)
     await db.connect()
     return db
 

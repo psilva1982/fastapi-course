@@ -5,7 +5,7 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 CREATE TABLE public.authors (
 	id serial NOT NULL,
 	"name" text NULL,
-	book _text NULL,
+	books _text NULL,
 	CONSTRAINT authors_pkey PRIMARY KEY (id)
 );
 
