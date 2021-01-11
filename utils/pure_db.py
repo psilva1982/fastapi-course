@@ -25,13 +25,19 @@ async def fetch(query, is_one, values=None):
     
     if is_one:
         result = await db.fetch_one(query=query, values=values)
-        out = dict(result)
+        if result is None:
+            out = None
+        else:
+            out = dict(result)
     
     else:
         result = await db.fetch_all(query=query, values=values)
-        out = []
-        for row in result:
-            out.append(dict(row))
+        if result is None:
+            out = None
+        else:
+            out = []
+            for row in result:
+                out.append(dict(row))
 
     await disconnect_db(db)
     return out
