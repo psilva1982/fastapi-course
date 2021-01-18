@@ -25,3 +25,11 @@ CREATE TABLE public.users (
 	"role" text NULL,
 	CONSTRAINT users_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE public.personel ( 
+	id serial primary key,
+	username text,
+	password text, 
+	mail text,
+	role text
+);

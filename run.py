@@ -12,11 +12,20 @@ from starlette.requests import Request
 from starlette.responses import Response
 from starlette.status import HTTP_401_UNAUTHORIZED
 from utils.security import authenticate_user, check_jwt_token, create_jwt_token
+from utils.db_object import db
 
 app = FastAPI(title="Bookstore", description='Course of Fastapi', version='0.0.1')
 
 app.include_router(app_v1, prefix="/v1", dependencies=[Depends(check_jwt_token)])
 app.include_router(app_v2, prefix="/v2", dependencies=[Depends(check_jwt_token)])
+
+@app.on_event("startup")
+async def connect_db():
+    await db.connect()
+
+@app.on_event("shutdown")
+async def disconnect_db():
+    await db.disconnect()
 
 @app.post("/token", summary=DOC_TOKEN_SUMARY, description=DOC_TOKEN_DESCRIPTION)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -37,15 +46,16 @@ async def middleware(request: Request, call_next):
     start_time = datetime.utcnow()
 
     #Modify request here 
-    if not any(word in str(request.url) for word in ['/token', '/docs', '/openapi']):
-        try:
-            jwt_token = request.headers['Authorization'].split('Bearer ')[1]
-            is_valid = check_jwt_token(jwt_token)
-        except Exception as e:
-            is_valid = False
+    # if not any(word in str(request.url) for word in ['/token', '/docs', '/openapi']):
+    #     try:
+    #         jwt_token = request.headers['Authorization'].split('Bearer ')[1]
+    #         is_valid = await check_jwt_token(jwt_token)
+    #     except Exception as e:
+    #         print(e)
+    #         is_valid = False
     
-        if not is_valid:
-            return Response("Unauthorized", status_code=HTTP_401_UNAUTHORIZED)
+    #     if not is_valid:
+    #         return Response("Unauthorized", status_code=HTTP_401_UNAUTHORIZED)
 
     response = await call_next(request)
     #Modify response here 
