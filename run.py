@@ -1,5 +1,7 @@
 from datetime import datetime
-from utils.constants import DOC_TOKEN_DESCRIPTION, DOC_TOKEN_SUMARY
+
+import aioredis
+from utils.constants import DOC_TOKEN_DESCRIPTION, DOC_TOKEN_SUMARY, REDIS_URL
 
 from fastapi.exceptions import HTTPException
 from models.jwt_user import JWTUser
@@ -13,19 +15,25 @@ from starlette.responses import Response
 from starlette.status import HTTP_401_UNAUTHORIZED
 from utils.security import authenticate_user, check_jwt_token, create_jwt_token
 from utils.db_object import db
+import utils.redis_object as re
+from utils.redis_object import check_test_redis
 
 app = FastAPI(title="Bookstore", description='Course of Fastapi', version='0.0.1')
 
-app.include_router(app_v1, prefix="/v1", dependencies=[Depends(check_jwt_token)])
-app.include_router(app_v2, prefix="/v2", dependencies=[Depends(check_jwt_token)])
+app.include_router(app_v1, prefix="/v1", dependencies=[Depends(check_jwt_token), Depends(check_test_redis)])
+app.include_router(app_v2, prefix="/v2", dependencies=[Depends(check_jwt_token), Depends(check_test_redis)])
 
 @app.on_event("startup")
 async def connect_db():
     await db.connect()
+    re.redis = await aioredis.create_redis_pool(REDIS_URL)
 
 @app.on_event("shutdown")
 async def disconnect_db():
     await db.disconnect()
+    re.redis.close()
+
+    await re.redis.wait_closed()
 
 @app.post("/token", summary=DOC_TOKEN_SUMARY, description=DOC_TOKEN_DESCRIPTION)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):

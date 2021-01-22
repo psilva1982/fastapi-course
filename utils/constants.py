@@ -17,3 +17,13 @@ DB_URL=f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/bookstore"
 
 API_IMGBB_KEY=config('API_IMGBB_KEY')
 API_IMGBB_URL=f'https://api.imgbb.com/1/upload?key={API_IMGBB_KEY}'
+
+REDIS_URL="redis://localhost"
+TEST_REDIS_URL="redis://localhost"
+
+TESTING = True
+
+TEST_DB_HOST='localhost'
+TEST_DB_USER='postgres'
+TEST_DB_PASS='postgres'
+TEST_DB_URL=f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/test"

@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 from starlette.responses import Response
 from utils.security import authenticate_user, create_jwt_token, check_jwt_token
+import utils.redis_object as re
 
 app_v1 = APIRouter()
 
@@ -37,8 +38,23 @@ async def post_user(user: User):
 
 @app_v1.post("/login", tags=['User'])
 async def get_user_validation(username: str = Body(...), password: str = Body(...)):
-    result = await db_check_personel(username, password)
-    return {"is_valid": result}
+    redis_key = f"{username},{password}"
+    result = await re.redis.get(redis_key)
+
+    # Redis has the data
+    if result:
+        print(bool(result))
+        if bool(result) == True:
+            return {"is_valid (redis)": True}
+        else: 
+            return {"is_valid (redis)": False}
+    
+    # Redis does not have the data
+    else:
+        result = await db_check_personel(username, password)
+        await re.redis.set(redis_key, str(result), expire=10)
+    
+        return {"is_valid (db)": result}
 
 @app_v1.get("/book/{isbn}", response_model=Book, response_model_include=["name", "year"], tags=['Book'])
 async def get_book_with_isbn(isbn: str):

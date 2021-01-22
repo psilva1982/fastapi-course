@@ -21,6 +21,9 @@ yarn-error.log*
 *.sln
 *.sw?
 
+# Test Cache
+.pytest
+
 # Diretorio de Imagens
 media
 *.sqlite3
