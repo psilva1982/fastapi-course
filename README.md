@@ -4,5 +4,5 @@ Samples of the fastapi course in https://www.udemy.com/course/python-api-develop
 - FastAPI
 - Postresql 
 - Redis
-- Test endpoints with pytest 
+- Unit Tests 
 - Test API load with locust

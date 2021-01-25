@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import aioredis
-from utils.constants import DOC_TOKEN_DESCRIPTION, DOC_TOKEN_SUMARY, REDIS_URL
+from utils.constants import DOC_TOKEN_DESCRIPTION, DOC_TOKEN_SUMARY, IS_LOAD_TEST, REDIS_URL, TESTING
 
 from fastapi.exceptions import HTTPException
 from models.jwt_user import JWTUser
@@ -17,6 +17,7 @@ from utils.security import authenticate_user, check_jwt_token, create_jwt_token
 from utils.db_object import db
 import utils.redis_object as re
 from utils.redis_object import check_test_redis
+import pickle
 
 app = FastAPI(title="Bookstore", description='Course of Fastapi', version='0.0.1')
 
@@ -25,25 +26,36 @@ app.include_router(app_v2, prefix="/v2", dependencies=[Depends(check_jwt_token),
 
 @app.on_event("startup")
 async def connect_db():
-    await db.connect()
-    re.redis = await aioredis.create_redis_pool(REDIS_URL)
-
+    if not TESTING:
+        await db.connect()
+        re.redis = await aioredis.create_redis_pool(REDIS_URL)
+    
 @app.on_event("shutdown")
 async def disconnect_db():
-    await db.disconnect()
-    re.redis.close()
+    if not TESTING:
+        await db.disconnect()
+        re.redis.close()
 
-    await re.redis.wait_closed()
+        await re.redis.wait_closed()
 
 @app.post("/token", summary=DOC_TOKEN_SUMARY, description=DOC_TOKEN_DESCRIPTION)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    jwt_user_dict = {"username": form_data.username, "password": form_data.password }
-    jwt_user = JWTUser(**jwt_user_dict)
 
-    user = await authenticate_user(jwt_user)
-    if user is None:
-        raise HTTPException(status_code=HTTP_401_UNAUTHORIZED) 
+    redis_key = f"token:{form_data.username},{form_data.password}"
+    user = await re.redis.get(redis_key)
+
+    if not user: 
+        jwt_user_dict = {"username": form_data.username, "password": form_data.password }
+        jwt_user = JWTUser(**jwt_user_dict)
+
+        user = await authenticate_user(jwt_user)
+        await re.redis.set(redis_key, pickle.dumps(user))
+        if user is None:
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED) 
     
+    else: 
+        user = pickle.loads(user)
+
     jwt_token = create_jwt_token(user)
     return {"access_token": jwt_token}
 

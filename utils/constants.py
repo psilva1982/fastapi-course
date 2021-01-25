@@ -21,7 +21,8 @@ API_IMGBB_URL=f'https://api.imgbb.com/1/upload?key={API_IMGBB_KEY}'
 REDIS_URL="redis://localhost"
 TEST_REDIS_URL="redis://localhost"
 
-TESTING = True
+TESTING = False
+IS_LOAD_TEST = True
 
 TEST_DB_HOST='localhost'
 TEST_DB_USER='postgres'
