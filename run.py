@@ -54,9 +54,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         jwt_user = JWTUser(**jwt_user_dict)
 
         user = await authenticate_user(jwt_user)
-        await re.redis.set(redis_key, pickle.dumps(user))
         if user is None:
             raise HTTPException(status_code=HTTP_401_UNAUTHORIZED) 
+        
+        await re.redis.set(redis_key, pickle.dumps(user))
     
     else: 
         user = pickle.loads(user)
